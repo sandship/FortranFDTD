@@ -3,13 +3,14 @@ module field_update
     use load_model
     implicit none
 
-    double precision :: vin
     contains
 
     subroutine update_feed
         implicit none
-        vin = sin(omega * t)
-        ez(feedx, feedy, feedz) = vin / dz
+        vfeed = sin(omega * t)
+        ez(feedx, feedy, feedz) = vfeed / dz
+        ifeed = dy * (hx(feedx, feedy - 1, feedz) - hx(feedx, feedy, feedz)) &
+              + dx * (hy(feedx, feedy, feedz) - hy(feedx - 1, feedy, feedz))
     end subroutine update_feed
 
 
@@ -22,6 +23,7 @@ module field_update
     subroutine update_efield
         implicit none
         integer :: i, j, k
+
         do k = 2, nz - 1
             do j = 2, ny - 1
                 do i = 2, nx - 1
@@ -45,12 +47,14 @@ module field_update
                 end do
             end do
         end do
+
     end subroutine update_efield
 
 
     subroutine update_hfield
         implicit none
         integer :: i, j, k
+
         do k = 2, nz - 1
             do j = 2, ny - 1
                 do i = 2, nx - 1
@@ -70,6 +74,7 @@ module field_update
                 end do
             end do
         end do
+
     end subroutine update_hfield
 
 end module field_update

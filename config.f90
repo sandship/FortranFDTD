@@ -6,18 +6,21 @@ module setup_parameter
     ! ## declare user setting parameter ##
     integer, parameter :: nair = 5
     integer, parameter :: npml = 12
+    integer, parameter :: thread_num = 4
 
-    integer, parameter :: nx = 10 + (nair + npml) * 2
-    integer, parameter :: ny = 10 + (nair + npml) * 2
+    integer, parameter :: nx = 40 + (nair + npml) * 2
+    integer, parameter :: ny = 160 + (nair + npml) * 2
     integer, parameter :: nz = 80 + (nair + npml) * 2
-    integer, parameter :: nt = 1024
-    integer, parameter :: check_interval = 10
+    integer, parameter :: nt = 2000
+    integer, parameter :: check_time = 50
+    integer, parameter :: check_interval = int(nt/check_time)
     
-    double precision, parameter :: freq = 3.0d+9
-    double precision, parameter :: dx = 0.002d0, dy = dx, dz = dx
+    double precision, parameter :: freq = 1.0d+9
+    double precision, parameter :: dx = 0.01d0, dy = dx, dz = dx
 
     integer, parameter :: dimpml = 2
     double precision, parameter :: refpml = 1.0d-6
+
 
     ! ## declare general parameter ##
     double precision, parameter :: pi = 3.1415926535d0
@@ -34,36 +37,42 @@ module setup_parameter
     integer, parameter :: cent_z = int(nz/2)
 
 
-    ! ## declare public variable ##
-    integer :: step = 0
-    double precision :: t = 0
-
-
     ! ## test model para ##
-    integer, parameter :: mie_radius = int(0.05d0 / dx)
+    integer, parameter :: mie_radius = int(0.2d0 / dx)
     integer, parameter :: mie_per = 2
-    integer, parameter :: mie_distance = int(0.02d0 / dx)
-    integer, parameter :: mie_dipole_len = int(0.05d0 / dx)
+    integer, parameter :: mie_distance = int(0.2d0 / dy)
+    integer, parameter :: mie_dipole_len = int(15)
 
     integer, parameter :: feedx = cent_x
-    integer, parameter :: feedy = cent_y
+    integer, parameter :: feedy = cent_y + mie_radius + mie_distance
     integer, parameter :: feedz = cent_z
 
     integer, parameter :: ground_plane_height = npml + 1
+
+
+    ! ## declare public variable ##
+    integer :: step = 0
+    integer :: omp_set_num_threads
+    double precision :: t = 0
+    double precision :: vfeed, ifeed
 
 
     ! ## declare EM-parameter array ##
     integer, parameter :: nmax_per = 1000
 
     integer, dimension(nx, ny, nz) :: idper = 1
-    integer, dimension(nx, ny, nz) :: idperx = 1, idpery = 1, idperz = 1 ! permitivity ID mapping on calc-space for each axis
-    double precision, dimension(nx, ny, nz) :: idpecx = 1, idpecy = 1, idpecz = 1 ! PEC ID mapping on calc-space for each axis
+
+    integer, dimension(nx, ny, nz) & 
+        :: idperx = 1, idpery = 1, idperz = 1 ! permitivity ID mapping on calc-space for each axis
+    double precision, dimension(nx, ny, nz) & 
+        :: idpecx = 1, idpecy = 1, idpecz = 1 ! PEC ID mapping on calc-space for each axis
 
     double precision, dimension(nmax_PER) :: sigma = 0.0d0
     double precision, dimension(nmax_PER) :: eps = eps0
     double precision, dimension(nmax_PER) :: msigma = 0.0d0
     double precision, dimension(nmax_PER) :: mu = mu0
     double precision, dimension(nmax_PER) :: rho
+
 
     !## declare EM-field array ##
     double precision, dimension(nx, ny, nz) :: ex, ey, ez

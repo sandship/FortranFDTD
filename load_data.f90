@@ -23,25 +23,36 @@ module load_model
             do j = cent_y - mie_radius, cent_y + mie_radius
                 do i = cent_x - mie_radius, cent_x + mie_radius
 
-                    if((cent_z - k) ** 2 + (cent_y - k) ** 2 + (cent_z - k) ** 2 < mie_radius ** 2) then
+                    if((k - cent_z) ** 2 + (j - cent_y) ** 2 + (i - cent_x) ** 2 <= mie_radius ** 2) then
                         idper(i, j, k) = mie_per
+                        ! FIXME:
+                        ! 隣接セルに伸ばすと球の誘電体のときのみ何故か発散するのでC.O.
 
-                        idperx(i, j, k+1) = mie_per
-                        idperx(i, j+1, k) = mie_per
-                        idperx(i, j+1, k+1) = mie_per
+                        idperx(i, j, k) = mie_per
+                        ! idperx(i, j, k + 1) = mie_per
+                        ! idperx(i, j + 1, k) = mie_per
+                        ! idperx(i, j + 1, k + 1) = mie_per
 
-                        idpery(i, j, k+1) = mie_per
-                        idpery(i+1, j, k) = mie_per
-                        idpery(i+1, j, k+1) = mie_per
+                        idpery(i, j, k) = mie_per
+                        ! idpery(i, j, k + 1) = mie_per
+                        ! idpery(i + 1, j, k) = mie_per
+                        ! idpery(i + 1, j, k + 1) = mie_per
 
-                        idperz(i, j+1, k) = mie_per
-                        idperz(i+1, j, k) = mie_per
-                        idperz(i+1, j+1, k) = mie_per
+                        idperz(i, j, k) = mie_per
+                        ! idperz(i, j + 1, k) = mie_per
+                        ! idperz(i + 1, j, k) = mie_per
+                        ! idperz(i + 1, j + 1, k) = mie_per
+                        
                     end if
 
                 end do
             end do
         end do
+
+        print *, eps(:mie_per), sigma(:mie_per)
+        eps(mie_per) = 100 * eps0
+        print *, eps(:mie_per), sigma(:mie_per)
+
     end subroutine make_mie_model
 
 
@@ -50,7 +61,7 @@ module load_model
         integer :: i, j, k
         i = feedx
         j = feedy
-        do k = feedz - mie_dipole_len, feedz + mie_dipole_len
+        do k = feedz - int(mie_dipole_len / 2), feedz + int(mie_dipole_len / 2)
             idpecz(i, j, k) = 0
         end do
     end subroutine make_dipole_antenna
@@ -87,105 +98,107 @@ module load_model
             ch_value = (2.0d0 * mu0 - msigbuf * dt)/(2.0d0 * mu0 + msigbuf * dt)
             dh_value = (2.0d0 * dt)/(2.0d0 * mu0 + msigbuf * dt)/dx
 
-            !###
-            cex(n : n + 1, :, :) = ce_value
-            cey(n : n + 1, :, :) = ce_value
-            cez(n : n + 1, :, :) = ce_value
+            ! FIXME:
+            ! PMLって確かPML面に対する接線成分のみだったきがするのでC.O.
 
-            cex(:, n : n + 1, :) = ce_value
-            cey(:, n : n + 1, :) = ce_value
-            cez(:, n : n + 1, :) = ce_value
+            ! cex(n, :, :) = ce_value
+            cey(n, :, :) = ce_value
+            cez(n, :, :) = ce_value
 
-            cex(:, :, n : n + 1) = ce_value
-            cey(:, :, n : n + 1) = ce_value
-            cez(:, :, n : n + 1) = ce_value
+            cex(:, n, :) = ce_value
+            ! cey(:, n, :) = ce_value
+            cez(:, n, :) = ce_value
 
-            cex(nx - n : nx - (n - 1), :, :) = ce_value
-            cey(ny - n : ny - (n - 1), :, :) = ce_value
-            cez(nz - n : nz - (n - 1), :, :) = ce_value
+            cex(:, :, n) = ce_value
+            cey(:, :, n) = ce_value
+            ! cez(:, :, n) = ce_value
 
-            cex(:, nx - n : nx - (n - 1), :) = ce_value
-            cey(:, ny - n : ny - (n - 1), :) = ce_value
-            cez(:, nz - n : nz - (n - 1), :) = ce_value
+            ! cex(nx - (n - 1), :, :) = ce_value
+            cey(nx - (n - 1), :, :) = ce_value
+            cez(nx - (n - 1), :, :) = ce_value
 
-            cex(:, :, nx - n : nx - (n - 1)) = ce_value
-            cey(:, :, ny - n : ny - (n - 1)) = ce_value
-            cez(:, :, nz - n : nz - (n - 1)) = ce_value
+            cex(:, ny - (n - 1), :) = ce_value
+            ! cey(:, ny - (n - 1), :) = ce_value
+            cez(:, ny - (n - 1), :) = ce_value
+
+            cex(:, :, nz - (n - 1)) = ce_value
+            cey(:, :, nz - (n - 1)) = ce_value
+            ! cez(:, :, nz - (n - 1)) = ce_value
             
             !###
-            dex(n : n + 1, :, :) = de_value
-            dey(n : n + 1, :, :) = de_value
-            dez(n : n + 1, :, :) = de_value
+            ! dex(n, :, :) = de_value
+            dey(n, :, :) = de_value
+            dez(n, :, :) = de_value
 
-            dex(:, n : n + 1, :) = de_value
-            dey(:, n : n + 1, :) = de_value
-            dez(:, n : n + 1, :) = de_value
+            dex(:, n, :) = de_value
+            ! dey(:, n, :) = de_value
+            dez(:, n, :) = de_value
 
-            dex(:, :, n : n + 1) = de_value
-            dey(:, :, n : n + 1) = de_value
-            dez(:, :, n : n + 1) = de_value
+            dex(:, :, n) = de_value
+            dey(:, :, n) = de_value
+            ! dez(:, :, n) = de_value
 
-            dex(nx - n : nx - (n - 1), :, :) = de_value
-            dey(ny - n : ny - (n - 1), :, :) = de_value
-            dez(nz - n : nz - (n - 1), :, :) = de_value
+            ! dex(nx - (n - 1), :, :) = de_value
+            dey(nx - (n - 1), :, :) = de_value
+            dez(nx - (n - 1), :, :) = de_value
 
-            dex(:, nx - n : nx - (n - 1), :) = de_value
-            dey(:, ny - n : ny - (n - 1), :) = de_value
-            dez(:, nz - n : nz - (n - 1), :) = de_value
+            dex(:, ny - (n - 1), :) = de_value
+            ! dey(:, ny - (n - 1), :) = de_value
+            dez(:, ny - (n - 1), :) = de_value
 
-            dex(:, :, nx - n : nx - (n - 1)) = de_value
-            dey(:, :, ny - n : ny - (n - 1)) = de_value
-            dez(:, :, nz - n : nz - (n - 1)) = de_value
+            dex(:, :, nz - (n - 1)) = de_value
+            dey(:, :, nz - (n - 1)) = de_value
+            ! dez(:, :, nz - (n - 1)) = de_value
             
             !###
-            chx(n : n + 1, :, :) = ch_value
-            chy(n : n + 1, :, :) = ch_value
-            chz(n : n + 1, :, :) = ch_value
+            ! chx(n, :, :) = ch_value
+            chy(n, :, :) = ch_value
+            chz(n, :, :) = ch_value
 
-            chx(:, n : n + 1, :) = ch_value
-            chy(:, n : n + 1, :) = ch_value
-            chz(:, n : n + 1, :) = ch_value
+            chx(:, n, :) = ch_value
+            ! chy(:, n, :) = ch_value
+            chz(:, n, :) = ch_value
 
-            chx(:, :, n : n + 1) = ch_value
-            chy(:, :, n : n + 1) = ch_value
-            chz(:, :, n : n + 1) = ch_value
+            chx(:, :, n) = ch_value
+            chy(:, :, n) = ch_value
+            ! chz(:, :, n) = ch_value
 
-            chx(nx - n : nx - (n - 1), :, :) = ch_value
-            chy(ny - n : ny - (n - 1), :, :) = ch_value
-            chz(nz - n : nz - (n - 1), :, :) = ch_value
+            ! chx(nx - (n - 1), :, :) = ch_value
+            chy(nx - (n - 1), :, :) = ch_value
+            chz(nx - (n - 1), :, :) = ch_value
 
-            chx(:, nx - n : nx - (n - 1), :) = ch_value
-            chy(:, ny - n : ny - (n - 1), :) = ch_value
-            chz(:, nz - n : nz - (n - 1), :) = ch_value
+            chx(:, ny - (n - 1), :) = ch_value
+            ! chy(:, ny - (n - 1), :) = ch_value
+            chz(:, ny - (n - 1), :) = ch_value
 
-            chx(:, :, nx - n : nx - (n - 1)) = ch_value
-            chy(:, :, ny - n : ny - (n - 1)) = ch_value
-            chz(:, :, nz - n : nz - (n - 1)) = ch_value
+            chx(:, :, nz - (n - 1)) = ch_value
+            chy(:, :, nz - (n - 1)) = ch_value
+            ! chz(:, :, nz - (n - 1)) = ch_value
             
             !###
-            dhx(n : n + 1, :, :) = dh_value
-            dhy(n : n + 1, :, :) = dh_value
-            dhz(n : n + 1, :, :) = dh_value
+            ! dhx(n, :, :) = dh_value
+            dhy(n, :, :) = dh_value
+            dhz(n, :, :) = dh_value
 
-            dhx(:, n : n + 1, :) = dh_value
-            dhy(:, n : n + 1, :) = dh_value
-            dhz(:, n : n + 1, :) = dh_value
+            dhx(:, n, :) = dh_value
+            ! dhy(:, n, :) = dh_value
+            dhz(:, n, :) = dh_value
 
-            dhx(:, :, n : n + 1) = dh_value
-            dhy(:, :, n : n + 1) = dh_value
-            dhz(:, :, n : n + 1) = dh_value
+            dhx(:, :, n) = dh_value
+            dhy(:, :, n) = dh_value
+            ! dhz(:, :, n) = dh_value
 
-            dhx(nx - n : nx - (n - 1), :, :) = dh_value
-            dhy(ny - n : ny - (n - 1), :, :) = dh_value
-            dhz(nz - n : nz - (n - 1), :, :) = dh_value
+            ! dhx(nx - (n - 1), :, :) = dh_value
+            dhy(nx - (n - 1), :, :) = dh_value
+            dhz(nx - (n - 1), :, :) = dh_value
 
-            dhx(:, nx - n : nx - (n - 1), :) = dh_value
-            dhy(:, ny - n : ny - (n - 1), :) = dh_value
-            dhz(:, nz - n : nz - (n - 1), :) = dh_value
+            dhx(:, ny - (n - 1), :) = dh_value
+            ! dhy(:, ny - (n - 1), :) = dh_value
+            dhz(:, ny - (n - 1), :) = dh_value
 
-            dhx(:, :, nx - n : nx - (n - 1)) = dh_value
-            dhy(:, :, ny - n : ny - (n - 1)) = dh_value
-            dhz(:, :, nz - n : nz - (n - 1)) = dh_value
+            dhx(:, :, nz - (n - 1)) = dh_value
+            dhy(:, :, nz - (n - 1)) = dh_value
+            ! dhz(:, :, nz - (n - 1)) = dh_value
 
         end do
     end subroutine set_pml_coefficient
