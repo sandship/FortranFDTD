@@ -14,6 +14,8 @@ module output
     subroutine output_at_first
         implicit none
         integer :: i, j, k
+        character(len=8) :: stepchar
+        write(stepchar, '(I8)') step
 
         open(101, file='./output/CE_YZplane.dat', status='replace')
         i = cent_x
@@ -40,6 +42,45 @@ module output
     subroutine output_at_end
         implicit none
         integer :: i, j, k
+        character(len=8) :: stepchar
+        write(stepchar, '(I8)') step
+
+        open(101, file='./output/'// stepchar //'_Eamp_YZplane.dat', status='replace')
+        i = cent_x
+        do k = npml, nz - npml
+            do j = npml, ny - npml
+                write(101, *) j, k, examp(i, j, k), eyamp(i, j, k), ezamp(i, j, k) &
+                , sqrt(examp(i, j, k)**2 + eyamp(i, j, k)**2 + ezamp(i, j, k)**2)
+            end do
+        end do
+        close(101)
+
+        open(101, file='./output/'// stepchar //'_SAR_YZplane.dat', status='replace')
+        i = cent_x
+        do k = npml, nz - npml
+            do j = npml, ny - npml
+                write(101, *) j, k, sar(i, j, k)
+            end do
+        end do
+        close(101)
+
+        open(101, file='./output/'// stepchar //'_SAR_XYplane.dat', status='replace')
+        k = cent_z
+        do j = npml, ny - npml
+            do i = npml, nx - npml
+                write(101, *) i, j, sar(i, j, k)
+            end do
+        end do
+        close(101)
+
+        open(101, file='./output/'// stepchar //'_SAR_XZplane.dat', status='replace')
+        j = cent_y
+        do k = npml, nz - npml
+            do i = npml, nx - npml
+                write(101, *) i, k, sar(i, j, k)
+            end do
+        end do
+        close(101)
 
         open(101, file='./output/Eamp_Yline.dat', status='replace')
         i = cent_x
@@ -59,14 +100,14 @@ module output
         character(len=8) :: stepchar
         write(stepchar, '(I8)') step
 
-        open(101, file='./output/'// stepchar //'_Eamp_YZplane.dat', status='replace')
+        open(101, file='./output/Eamp_center_timeline.dat', position='append')
         i = cent_x
-        do k = npml, nz - npml
-            do j = npml, ny - npml
-                write(101, *) j, k, examp(i, j, k), eyamp(i, j, k), ezamp(i, j, k) &
-                , sqrt(examp(i, j, k)**2 + eyamp(i, j, k)**2 + ezamp(i, j, k)**2)
-            end do
-        end do
+        j = cent_y
+        k = cent_z
+        write(101, *) step, sqrt(examp(i, j, k)**2 + eyamp(i, j, k)**2 + ezamp(i, j, k)**2) &
+                          , sqrt(ex_sub(i, j, k)**2 + ey_sub(i, j, k)**2 + ez_sub(i, j, k)**2) &
+                          , sqrt(ex(i, j, k)**2 + ey(i, j, k)**2 + ez(i, j, k)**2)
+
         close(101)
 
     end subroutine output_at_checkpoint

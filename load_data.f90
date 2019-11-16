@@ -50,7 +50,9 @@ module load_model
         end do
 
         print *, eps(:mie_per), sigma(:mie_per)
-        eps(mie_per) = 100 * eps0
+        eps(mie_per) = 77.9 * eps0
+        sigma(mie_per) = 0.4808d0
+        rho(mie_per) = 1040d0
         print *, eps(:mie_per), sigma(:mie_per)
 
     end subroutine make_mie_model

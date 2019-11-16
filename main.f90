@@ -22,16 +22,15 @@ program main
 
     do step = 1, nt
         call update_Vfeed
-        call update_Ifeed
         call update_efield
         t = t + hdt
 
         call update_Vfeed
-        call update_Ifeed
         call update_hfield
         t = t + hdt
 
         if (mod(step, check_interval) == 0) then
+            call calc_sar
             call calc_field_amp
             call calc_ave_sar_wb
             call calc_peak_sar_xg

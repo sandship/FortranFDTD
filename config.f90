@@ -9,14 +9,14 @@ module setup_parameter
     integer, parameter :: thread_num = 4
 
     integer, parameter :: nx = 40 + (nair + npml) * 2
-    integer, parameter :: ny = 160 + (nair + npml) * 2
-    integer, parameter :: nz = 80 + (nair + npml) * 2
-    integer, parameter :: nt = 2000
+    integer, parameter :: ny = 66 + (nair + npml) * 2
+    integer, parameter :: nz = 40 + (nair + npml) * 2
+    integer, parameter :: nt = 30001
     integer, parameter :: check_time = 50
     integer, parameter :: check_interval = int(nt/check_time)
     
-    double precision, parameter :: freq = 1.0d+9
-    double precision, parameter :: dx = 0.01d0, dy = dx, dz = dx
+    double precision, parameter :: freq = 6.78d+6
+    double precision, parameter :: dx = 0.002d0, dy = dx, dz = dx
 
     integer, parameter :: dimpml = 2
     double precision, parameter :: refpml = 1.0d-6
@@ -38,9 +38,9 @@ module setup_parameter
 
 
     ! ## test model para ##
-    integer, parameter :: mie_radius = int(0.2d0 / dx)
+    integer, parameter :: mie_radius = int(0.04d0 / dx)
     integer, parameter :: mie_per = 2
-    integer, parameter :: mie_distance = int(0.2d0 / dy)
+    integer, parameter :: mie_distance = int(0.01d0 / dy)
     integer, parameter :: mie_dipole_len = int(16)
 
     integer, parameter :: feedx = cent_x
@@ -72,7 +72,7 @@ module setup_parameter
     double precision, dimension(nmax_PER) :: eps = eps0
     double precision, dimension(nmax_PER) :: msigma = 0.0d0
     double precision, dimension(nmax_PER) :: mu = mu0
-    double precision, dimension(nmax_PER) :: rho
+    double precision, dimension(nmax_PER) :: rho = 1.0d0
 
 
     !## declare EM-field array ##
@@ -84,6 +84,8 @@ module setup_parameter
 
     double precision, dimension(nx, ny, nz) :: examp, eyamp, ezamp
     double precision, dimension(nx, ny, nz) :: hxamp, hyamp, hzamp
+
+    double precision, dimension(nx, ny, nz) :: sar
 
     double precision, dimension(nx, ny, nz) :: exphase, eyphase, ezphase
     double precision, dimension(nx, ny, nz) :: hxphase, hyphase, hzphase

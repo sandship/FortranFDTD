@@ -35,6 +35,9 @@ module field_update
         double precision :: dex_buf, dey_buf, dez_buf
         integer :: idpecx_buf, idpecy_buf, idpecz_buf
 
+        !$omp parallel num_threads(16) &
+        !$omp private(i, j, k, cex_buf, cey_buf, cez_buf, dex_buf, dey_buf, dez_buf, idpecx_buf, idpecy_buf, idpecz_buf)
+        !$omp do
         do k = 2, nz - 1
             do j = 2, ny - 1
                 do i = 2, nx - 1
@@ -87,6 +90,8 @@ module field_update
                 end do
             end do
         end do
+        !$omp end do
+        !$omp end parallel
 
     end subroutine update_efield
 
@@ -97,6 +102,9 @@ module field_update
         double precision :: chx_buf, chy_buf, chz_buf
         double precision :: dhx_buf, dhy_buf, dhz_buf
 
+        !$omp parallel num_threads(16) &
+        !$omp private(i, j, k, chx_buf, chy_buf, chz_buf, dhx_buf, dhy_buf, dhz_buf)
+        !$omp do
         do k = 2, nz - 1
             do j = 2, ny - 1
                 do i = 2, nx - 1
@@ -138,7 +146,9 @@ module field_update
                 end do
             end do
         end do
-
+        !$omp end do
+        !$omp end parallel
+        
     end subroutine update_hfield
 
 end module field_update
@@ -155,22 +165,56 @@ module calc_amp
     subroutine calc_field_amp
         implicit none
         integer :: i, j, k
+
+        !$omp parallel num_threads(16) &
+        !$omp private(i, j, k)
+        !$omp do
         do k = 1, nz
             do j = 1, ny
                 do i = 1, nx
                     
-                    examp(i, j, k) = sqrt(ex(i, j, k)**2 + ex_sub(i, j, k)**2)
-                    eyamp(i, j, k) = sqrt(ey(i, j, k)**2 + ey_sub(i, j, k)**2)
-                    ezamp(i, j, k) = sqrt(ez(i, j, k)**2 + ez_sub(i, j, k)**2)
+                    examp(i, j, k) = sqrt(ex(i, j, k)*ex(i, j, k) + ex_sub(i, j, k)*ex_sub(i, j, k))
+                    eyamp(i, j, k) = sqrt(ey(i, j, k)*ey(i, j, k) + ey_sub(i, j, k)*ey_sub(i, j, k))
+                    ezamp(i, j, k) = sqrt(ez(i, j, k)*ez(i, j, k) + ez_sub(i, j, k)*ez_sub(i, j, k))
 
-                    hxamp(i, j, k) = sqrt(hx(i, j, k)**2 + hx_sub(i, j, k)**2)
-                    hyamp(i, j, k) = sqrt(hy(i, j, k)**2 + hy_sub(i, j, k)**2)
-                    hzamp(i, j, k) = sqrt(hz(i, j, k)**2 + hz_sub(i, j, k)**2)
+                    hxamp(i, j, k) = sqrt(hx(i, j, k)*hx(i, j, k) + hx_sub(i, j, k)*hx_sub(i, j, k))
+                    hyamp(i, j, k) = sqrt(hy(i, j, k)*hy(i, j, k) + hy_sub(i, j, k)*hy_sub(i, j, k))
+                    hzamp(i, j, k) = sqrt(hz(i, j, k)*hz(i, j, k) + hz_sub(i, j, k)*hz_sub(i, j, k))
                     
                 end do
             end do
         end do
+        !$omp end do
+        !$omp end parallel
     end subroutine calc_field_amp
+
+    subroutine calc_sar
+        implicit none
+        integer :: i, j, k
+        integer :: idbuf
+        double precision :: ex_buf, ey_buf, ez_buf
+
+        !$omp parallel num_threads(16) &
+        !$omp private(i, j, k, idbuf, ex_buf, ey_buf, ez_buf)
+        !$omp do
+        do k = 1, nz
+            do j = 1, ny
+                do i = 1, nx
+
+                    idbuf = idper(i, j, k)
+                    ex_buf = examp(i, j, k)
+                    ey_buf = eyamp(i, j, k)
+                    ez_buf = ezamp(i, j, k)
+
+                    sar(i, j, k) = (ex_buf * ex_buf + ey_buf * ey_buf + ez_buf * ez_buf) &
+                                 * sigma(idbuf) / rho(idbuf)
+                    
+                end do
+            end do
+        end do
+        !$omp end do
+        !$omp end parallel
+    end subroutine calc_sar
 
     ! this subroutine is called at convergence check times
     subroutine calc_ave_sar_wb
@@ -188,6 +232,10 @@ module calc_amp
     subroutine calc_field_phase
         implicit none
         integer :: i, j, k
+
+        !$omp parallel num_threads(16) &
+        !$omp private(i, j, k)
+        !$omp do
         do k = 1, nz
             do j = 1, ny
                 do i = 1, nx
@@ -203,6 +251,8 @@ module calc_amp
                 end do
             end do
         end do
+        !$omp end do
+        !$omp end parallel
     end subroutine calc_field_phase
 
 end module calc_amp
