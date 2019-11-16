@@ -250,4 +250,9 @@ module load_field
 
     end subroutine load_efield
 
+    subroutine load_plane_wave
+        implicit none
+
+    end subroutine load_plane_wave
+
 end module load_field

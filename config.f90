@@ -41,7 +41,7 @@ module setup_parameter
     integer, parameter :: mie_radius = int(0.2d0 / dx)
     integer, parameter :: mie_per = 2
     integer, parameter :: mie_distance = int(0.2d0 / dy)
-    integer, parameter :: mie_dipole_len = int(15)
+    integer, parameter :: mie_dipole_len = int(16)
 
     integer, parameter :: feedx = cent_x
     integer, parameter :: feedy = cent_y + mie_radius + mie_distance
@@ -55,6 +55,7 @@ module setup_parameter
     integer :: omp_set_num_threads
     double precision :: t = 0
     double precision :: vfeed, ifeed
+    double precision :: vfeed_sub
 
 
     ! ## declare EM-parameter array ##
@@ -64,7 +65,7 @@ module setup_parameter
 
     integer, dimension(nx, ny, nz) & 
         :: idperx = 1, idpery = 1, idperz = 1 ! permitivity ID mapping on calc-space for each axis
-    double precision, dimension(nx, ny, nz) & 
+    integer, dimension(nx, ny, nz) & 
         :: idpecx = 1, idpecy = 1, idpecz = 1 ! PEC ID mapping on calc-space for each axis
 
     double precision, dimension(nmax_PER) :: sigma = 0.0d0
@@ -78,8 +79,16 @@ module setup_parameter
     double precision, dimension(nx, ny, nz) :: ex, ey, ez
     double precision, dimension(nx, ny, nz) :: hx, hy, hz
 
-    double precision, dimension(nx, ny, nz) :: einx, einy, einz
+    double precision, dimension(nx, ny, nz) :: ex_sub, ey_sub, ez_sub
+    double precision, dimension(nx, ny, nz) :: hx_sub, hy_sub, hz_sub
 
+    double precision, dimension(nx, ny, nz) :: examp, eyamp, ezamp
+    double precision, dimension(nx, ny, nz) :: hxamp, hyamp, hzamp
+
+    double precision, dimension(nx, ny, nz) :: exphase, eyphase, ezphase
+    double precision, dimension(nx, ny, nz) :: hxphase, hyphase, hzphase
+
+    double precision, dimension(nx, ny, nz) :: einx, einy, einz
 
     !## declare maxwell's co-efficient array ##
     double precision, dimension(nx, ny, nz) :: cex, cey, cez
