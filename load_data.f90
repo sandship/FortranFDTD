@@ -12,6 +12,20 @@ module load_model
     
     end subroutine load_human
 
+    subroutine load_tissue
+        implicit none
+        integer :: index, n
+        integer :: ios = 1
+
+        open(101, file='asset/6_78MHZ_Tissue_param.csv', status='old')
+            read(101, *)
+            do n = 1, nmax_per
+                read(101, *, iostat=ios) index, sigma(index), eps(index), rho(index)
+                eps(index) = eps(index) * eps0
+            end do
+        close(101)
+
+    end subroutine load_tissue
 
     ! this subroutine MAKE test Mie sphere model
     ! permitivity ID is bound with `tissue_param.csv`
@@ -46,11 +60,6 @@ module load_model
                 end do
             end do
         end do
-
-        eps(mie_per) = 77.9 * eps0
-        sigma(mie_per) = 0.408d0
-        rho(mie_per) = 1040.0d0
-
     end subroutine make_mie_model
 
 
@@ -254,7 +263,7 @@ module load_field
         do k = 2, nz - 1
             do j = 2, ny - 1
                 do i = 2, nz - 1
-                    einx(i, j, k) = exp(im * (k * dz * klambda))
+                    einx(i, j, k) = exp(im * (k * dz * wavenum))
                     einy(i, j, k) = 0.0d0
                     einz(i, j, k) = 0.0d0
 

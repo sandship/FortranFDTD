@@ -9,6 +9,7 @@ program main
     use output
     implicit none
 
+    call load_tissue
     call make_mie_model
 
     !call load_efield
@@ -32,7 +33,7 @@ program main
             print *, step, ' step'
             call calc_total_field
             call calc_field_amp
-            
+
             call calc_sar
             call calc_body_sar
             call calc_peak_sar_xg

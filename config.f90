@@ -11,7 +11,7 @@ module setup_parameter
     integer, parameter :: nx = 40 + (nair + npml) * 2
     integer, parameter :: ny = 66 + (nair + npml) * 2
     integer, parameter :: nz = 40 + (nair + npml) * 2
-    integer, parameter :: nt = 30001
+    integer, parameter :: nt = 3001
     integer, parameter :: check_time = 100
     integer, parameter :: check_interval = int(nt / check_time)
     
@@ -31,7 +31,7 @@ module setup_parameter
     double precision, parameter :: z0 = 120 * pi
     double precision, parameter :: omega = 2.0d0 * pi * freq
     double precision, parameter :: lambda = cv/freq
-    double precision, parameter :: klambda = 2.0d0 * pi / lambda
+    double precision, parameter :: wavenum = 2.0d0 * pi / lambda
     complex(kind(0d0)), parameter :: im = (0.0d0, 1.0d0)
 
     double precision, parameter :: dt = 0.99 / (cv * sqrt(1.d0 / dx ** 2 + 1.d0 / dy ** 2 + 1.d0 / dz ** 2))
@@ -57,14 +57,14 @@ module setup_parameter
 
     ! ## declare public variable ##
     integer :: step = 0
-    integer :: omp_set_num_threads
+    integer :: ios = 1
     double precision :: t = 0
     double precision :: vfeed, ifeed
     double precision :: vfeed_sub
 
 
     ! ## declare EM-parameter array ##
-    integer, parameter :: nmax_per = 1000
+    integer, parameter :: nmax_per = 5
 
     integer, dimension(nx, ny, nz) :: idper = 1
 

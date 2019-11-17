@@ -94,6 +94,7 @@ module field_update
 
     end subroutine update_scatter_efield
 
+
     subroutine update_efield
         implicit none
         integer :: i, j, k
@@ -217,6 +218,7 @@ module field_update
         
     end subroutine update_hfield
 
+
     subroutine calc_total_field
         implicit none
         integer :: i, j, k
@@ -302,6 +304,7 @@ module calc_amp
         !$omp end parallel
     end subroutine calc_field_amp
 
+
     subroutine calc_sar
         implicit none
         integer :: i, j, k
@@ -330,6 +333,7 @@ module calc_amp
 
     end subroutine calc_sar
 
+
     ! this subroutine is called at convergence check times
     subroutine calc_body_sar
         implicit none
@@ -350,12 +354,14 @@ module calc_amp
         sar_ave_wb = sar_ave_wb / mass_weight
     end subroutine calc_body_sar
 
+
     ! this subroutine is called at convergence check times
     subroutine calc_peak_sar_xg
         implicit none
     
     end subroutine calc_peak_sar_xg
 
+    
     ! this subroutine is called at end of programs
     subroutine calc_field_phase
         implicit none
