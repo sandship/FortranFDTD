@@ -11,8 +11,8 @@ module setup_parameter
     integer, parameter :: nx = 40 + (nair + npml) * 2
     integer, parameter :: ny = 66 + (nair + npml) * 2
     integer, parameter :: nz = 40 + (nair + npml) * 2
-    integer, parameter :: nt = 3001
-    integer, parameter :: check_time = 100
+    integer, parameter :: nt = 30001
+    integer, parameter :: check_time = 20
     integer, parameter :: check_interval = int(nt / check_time)
     
     double precision, parameter :: freq = 6.78d+6

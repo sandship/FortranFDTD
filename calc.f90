@@ -361,7 +361,7 @@ module calc_amp
     
     end subroutine calc_peak_sar_xg
 
-    
+
     ! this subroutine is called at end of programs
     subroutine calc_field_phase
         implicit none
@@ -374,13 +374,13 @@ module calc_amp
             do j = npml, ny - npml
                 do i = npml, nx - npml
                     
-                    exphase(i, j, k) = -omega * t * atan2(etx(i, j, k), etx_sub(i, j, k))
-                    eyphase(i, j, k) = -omega * t * atan2(ety(i, j, k), ety_sub(i, j, k))
-                    ezphase(i, j, k) = -omega * t * atan2(etz(i, j, k), etz_sub(i, j, k))
+                    exphase(i, j, k) = - omega * t * atan2(etx(i, j, k), etx_sub(i, j, k))
+                    eyphase(i, j, k) = - omega * t * atan2(ety(i, j, k), ety_sub(i, j, k))
+                    ezphase(i, j, k) = - omega * t * atan2(etz(i, j, k), etz_sub(i, j, k))
 
-                    hxphase(i, j, k) = -omega * t * atan2(hx(i, j, k), hx_sub(i, j, k))
-                    hyphase(i, j, k) = -omega * t * atan2(hy(i, j, k), hy_sub(i, j, k))
-                    hzphase(i, j, k) = -omega * t * atan2(hz(i, j, k), hz_sub(i, j, k))
+                    hxphase(i, j, k) = - omega * t * atan2(hx(i, j, k), hx_sub(i, j, k))
+                    hyphase(i, j, k) = - omega * t * atan2(hy(i, j, k), hy_sub(i, j, k))
+                    hzphase(i, j, k) = - omega * t * atan2(hz(i, j, k), hz_sub(i, j, k))
                     
                 end do
             end do
