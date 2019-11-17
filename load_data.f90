@@ -25,8 +25,6 @@ module load_model
 
                     if((k - cent_z) ** 2 + (j - cent_y) ** 2 + (i - cent_x) ** 2 <= mie_radius ** 2) then
                         idper(i, j, k) = mie_per
-                        ! FIXME:
-                        ! 隣接セルに伸ばすと球の誘電体のときのみ何故か発散するのでC.O.
 
                         idperx(i, j, k) = mie_per
                         ! idperx(i, j, k + 1) = mie_per
@@ -49,11 +47,9 @@ module load_model
             end do
         end do
 
-        print *, eps(:mie_per), sigma(:mie_per)
         eps(mie_per) = 77.9 * eps0
-        sigma(mie_per) = 0.4808d0
-        rho(mie_per) = 1040d0
-        print *, eps(:mie_per), sigma(:mie_per)
+        sigma(mie_per) = 0.408d0
+        rho(mie_per) = 1040.0d0
 
     end subroutine make_mie_model
 
@@ -88,10 +84,11 @@ module load_model
         double precision :: sigbuf
         double precision :: msigbuf
 
-        double precision :: ce_value, de_value, ch_value, dh_value
+        double precision :: ce_value, de_value
+        double precision :: ch_value, dh_value
 
         do n = 1, npml
-            sigbuf = (((float(n) - float(npml))/float(npml)) ** dimpml) * ((dimpml + 1) * (-log(refpml))/(2 * npml * dx * z0))
+            sigbuf = (((float(npml) - float(n)) / float(npml)) ** dimpml) * ((dimpml + 1) * (-log(refpml))/(2 * npml * dx * z0))
             msigbuf = mu0 / eps0 * sigbuf
 
             ce_value = (2.0d0 * eps0 - sigbuf * dt)/(2.0d0 * eps0 + sigbuf * dt)
@@ -99,9 +96,6 @@ module load_model
 
             ch_value = (2.0d0 * mu0 - msigbuf * dt)/(2.0d0 * mu0 + msigbuf * dt)
             dh_value = (2.0d0 * dt)/(2.0d0 * mu0 + msigbuf * dt)/dx
-
-            ! FIXME:
-            ! PMLって確かPML面に対する接線成分のみだったきがするのでC.O.
 
             ! cex(n, :, :) = ce_value
             cey(n, :, :) = ce_value
@@ -233,6 +227,7 @@ module load_model
                     dhx(i, j, k) = (2.0d0 * dt)/((2.0d0 * mu(idx) + msigma(idx) * dt) * dx)
                     dhy(i, j, k) = (2.0d0 * dt)/((2.0d0 * mu(idy) + msigma(idy) * dt) * dy)
                     dhz(i, j, k) = (2.0d0 * dt)/((2.0d0 * mu(idz) + msigma(idz) * dt) * dz)
+
                 end do
             end do
         end do
@@ -254,6 +249,30 @@ module load_field
 
     subroutine load_plane_wave
         implicit none
+        integer :: i, j, k
+
+        do k = 2, nz - 1
+            do j = 2, ny - 1
+                do i = 2, nz - 1
+                    einx(i, j, k) = exp(im * (k * dz * klambda))
+                    einy(i, j, k) = 0.0d0
+                    einz(i, j, k) = 0.0d0
+
+                    einx_sub(i, j, k) = einx(i, j, k) * im
+                    einy_sub(i, j, k) = einy(i, j, k) * im
+                    einz_sub(i, j, k) = einz(i, j, k) * im
+                end do
+            end do
+        end do
+
+        open(101, file='output/load_planewave.dat', status='replace')
+        i = cent_x
+        do j = 1, ny
+            do k = 1, nz
+                write(101, *) j, k, real(einx(i, j, k)), imag(einx(i, j, k))
+            end do
+        end do
+        close(101)
 
     end subroutine load_plane_wave
 

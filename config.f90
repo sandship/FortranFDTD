@@ -2,7 +2,7 @@ module setup_parameter
     use fileIO
     implicit none
     public
-
+    
     ! ## declare user setting parameter ##
     integer, parameter :: nair = 5
     integer, parameter :: npml = 12
@@ -12,29 +12,34 @@ module setup_parameter
     integer, parameter :: ny = 66 + (nair + npml) * 2
     integer, parameter :: nz = 40 + (nair + npml) * 2
     integer, parameter :: nt = 30001
-    integer, parameter :: check_time = 50
-    integer, parameter :: check_interval = int(nt/check_time)
+    integer, parameter :: check_time = 100
+    integer, parameter :: check_interval = int(nt / check_time)
     
     double precision, parameter :: freq = 6.78d+6
     double precision, parameter :: dx = 0.002d0, dy = dx, dz = dx
 
-    integer, parameter :: dimpml = 2
+    integer, parameter :: dimpml = 3
     double precision, parameter :: refpml = 1.0d-6
 
 
     ! ## declare general parameter ##
     double precision, parameter :: pi = 3.1415926535d0
+    double precision, parameter :: hpi = pi / 2.0d0
     double precision, parameter :: cv = 2.99792458d+8
     double precision, parameter :: eps0 = 8.8541878128d-12
     double precision, parameter :: mu0 = pi * 4.0d-7
     double precision, parameter :: z0 = 120 * pi
     double precision, parameter :: omega = 2.0d0 * pi * freq
+    double precision, parameter :: lambda = cv/freq
+    double precision, parameter :: klambda = 2.0d0 * pi / lambda
+    complex(kind(0d0)), parameter :: im = (0.0d0, 1.0d0)
 
     double precision, parameter :: dt = 0.99 / (cv * sqrt(1.d0 / dx ** 2 + 1.d0 / dy ** 2 + 1.d0 / dz ** 2))
     double precision, parameter :: hdt = dt / 2.0d0
     integer, parameter :: cent_x = int(nx/2)
     integer, parameter :: cent_y = int(ny/2)
     integer, parameter :: cent_z = int(nz/2)
+    complex(kind(0d0)), parameter :: cphase = exp(im * omega * dt)
 
 
     ! ## test model para ##
@@ -86,11 +91,17 @@ module setup_parameter
     double precision, dimension(nx, ny, nz) :: hxamp, hyamp, hzamp
 
     double precision, dimension(nx, ny, nz) :: sar
+    double precision :: sar_ave_wb = 0.d0
+    double precision :: mass_weight = 0.d0
 
     double precision, dimension(nx, ny, nz) :: exphase, eyphase, ezphase
     double precision, dimension(nx, ny, nz) :: hxphase, hyphase, hzphase
 
-    double precision, dimension(nx, ny, nz) :: einx, einy, einz
+    complex(kind(0d0)), dimension(nx, ny, nz) :: einx, einy, einz
+    complex(kind(0d0)), dimension(nx, ny, nz) :: einx_sub, einy_sub, einz_sub
+
+    double precision, dimension(nx, ny, nz) :: etx, ety, etz
+    double precision, dimension(nx, ny, nz) :: etx_sub, ety_sub, etz_sub
 
     !## declare maxwell's co-efficient array ##
     double precision, dimension(nx, ny, nz) :: cex, cey, cez
