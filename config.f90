@@ -2,7 +2,7 @@ module setup_parameter
     use fileIO
     implicit none
     public
-    
+
     ! ## declare user setting parameter ##
     integer, parameter :: nair = 5
     integer, parameter :: npml = 12
@@ -34,13 +34,14 @@ module setup_parameter
     double precision, parameter :: wavenum = 2.0d0 * pi / lambda
     complex(kind(0d0)), parameter :: im = (0.0d0, 1.0d0)
 
-    double precision, parameter :: dt = 0.99 / (cv * sqrt(1.d0 / dx ** 2 + 1.d0 / dy ** 2 + 1.d0 / dz ** 2))
-    double precision, parameter :: hdt = dt / 2.0d0
     integer, parameter :: cent_x = int(nx/2)
     integer, parameter :: cent_y = int(ny/2)
     integer, parameter :: cent_z = int(nz/2)
-    complex(kind(0d0)), parameter :: cphase = exp(im * omega * dt)
 
+    double precision :: dt
+    double precision :: hdt
+    
+    complex(kind(0d0)) :: cphase
 
     ! ## test model para ##
     integer, parameter :: mie_radius = int(0.04d0 / dx)

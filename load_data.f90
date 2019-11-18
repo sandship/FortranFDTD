@@ -8,7 +8,6 @@ module load_model
     ! permitivity ID is bound with `tissue_param.csv`
     subroutine load_human
         implicit none
-        integer :: i, j, k
     
     end subroutine load_human
 
@@ -213,6 +212,10 @@ module load_model
         implicit none
         integer :: i, j, k
         integer :: idx, idy, idz
+
+        dt = 0.99d0 / (cv * sqrt(1.d0 / dx ** 2 + 1.d0 / dy ** 2 + 1.d0 / dz ** 2))
+        hdt = dt / 2.0d0
+        cphase = exp(im * omega * dt)
 
         do k = 1, nz
             do j = 1, ny
