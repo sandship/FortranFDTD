@@ -4,7 +4,6 @@ module field_update
     implicit none
 
     contains
-
     subroutine update_Vfeed
         implicit none
         vfeed = sin(omega * t)
