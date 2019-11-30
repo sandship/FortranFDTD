@@ -4,6 +4,26 @@ module field_update
     implicit none
 
     contains
+<<<<<<< HEAD
+=======
+    subroutine update_Vfeed
+        implicit none
+        vfeed = sin(omega * t)
+        ez(feedx, feedy, feedz) = vfeed / dz
+
+        vfeed_sub = cos(omega * t)
+        ez_sub(feedx, feedy, feedz) = vfeed_sub / dz
+    end subroutine update_Vfeed
+
+
+    subroutine update_Ifeed
+        implicit none
+        ifeed = dy * (hx(feedx, feedy - 1, feedz) - hx(feedx, feedy, feedz)) &
+              + dx * (hy(feedx, feedy, feedz) - hy(feedx - 1, feedy, feedz))
+    end subroutine update_Ifeed
+
+
+>>>>>>> 654ea19bd5480deff4b711b0be3fed11758ecd38
     subroutine update_inc_field
         implicit none
         integer :: i, j, k
