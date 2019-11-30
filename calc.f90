@@ -4,24 +4,6 @@ module field_update
     implicit none
 
     contains
-
-    subroutine update_Vfeed
-        implicit none
-        vfeed = sin(omega * t)
-        ez(feedx, feedy, feedz) = vfeed / dz
-
-        vfeed_sub = cos(omega * t)
-        ez_sub(feedx, feedy, feedz) = vfeed_sub / dz
-    end subroutine update_Vfeed
-
-
-    subroutine update_Ifeed
-        implicit none
-        ifeed = dy * (hx(feedx, feedy - 1, feedz) - hx(feedx, feedy, feedz)) &
-              + dx * (hy(feedx, feedy, feedz) - hy(feedx - 1, feedy, feedz))
-    end subroutine update_Ifeed
-
-
     subroutine update_inc_field
         implicit none
         integer :: i, j, k
@@ -293,6 +275,10 @@ module calc_amp
                     eyamp(i, j, k) = sqrt(ety(i, j, k) * ety(i, j, k) + ety_sub(i, j, k) * ety_sub(i, j, k))
                     ezamp(i, j, k) = sqrt(etz(i, j, k) * etz(i, j, k) + etz_sub(i, j, k) * etz_sub(i, j, k))
 
+                    eamp(i, j, k) = sqrt(examp(i, j, k) * examp(i, j, k) &
+                                       + eyamp(i, j, k) * eyamp(i, j, k) &
+                                       + ezamp(i, j, k) * ezamp(i, j, k))
+
                     hxamp(i, j, k) = sqrt(hx(i, j, k) * hx(i, j, k) + hx_sub(i, j, k) * hx_sub(i, j, k))
                     hyamp(i, j, k) = sqrt(hy(i, j, k) * hy(i, j, k) + hy_sub(i, j, k) * hy_sub(i, j, k))
                     hzamp(i, j, k) = sqrt(hz(i, j, k) * hz(i, j, k) + hz_sub(i, j, k) * hz_sub(i, j, k))
@@ -318,12 +304,7 @@ module calc_amp
             do j = npml, ny - npml
                 do i = npml, nx - npml
                     idbuf = idper(i, j, k)
-                    ex_buf = examp(i, j, k)
-                    ey_buf = eyamp(i, j, k)
-                    ez_buf = ezamp(i, j, k)
-
-                    sar(i, j, k) = (ex_buf * ex_buf + ey_buf * ey_buf + ez_buf * ez_buf) &
-                                 * sigma(idbuf) / rho(idbuf)
+                    sar(i, j, k) = eamp(i, j, k) * eamp(i, j, k) * sigma(idbuf) / rho(idbuf)
                 end do
             end do
         end do
@@ -339,26 +320,72 @@ module calc_amp
         implicit none
         integer :: i, j, k
         integer :: idbuf
+        double precision :: total_weight = 0.d0
 
         sar_ave_wb = 0.0d0
-        mass_weight = 0.0d0
+        total_weight = 0.0d0
         do k = npml, nz - npml
             do j = npml, ny - npml
                 do i = npml, nx - npml
                     idbuf = idper(i, j, k)
                     sar_ave_wb = sar_ave_wb + sar(i, j, k) * rho(idbuf)
-                    mass_weight = mass_weight + dx * dy * dz * rho(idbuf)
+                    total_weight = total_weight + dx * dy * dz * rho(idbuf)
                 end do
             end do
         end do
-        sar_ave_wb = sar_ave_wb / mass_weight
+        sar_ave_wb = sar_ave_wb / total_weight
     end subroutine calc_body_sar
 
-
     ! this subroutine is called at convergence check times
-    subroutine calc_peak_sar_xg
+    subroutine calc_peak_sar_xg(mass_weight)
         implicit none
-    
+        double precision, intent(in) :: mass_weight
+        double precision :: part_weight
+        double precision :: sar_mass, sar_mass_max
+        double precision :: part_power
+        double precision :: threshold_sar = 1.0d-14
+        integer :: i, j, k
+        integer :: ci, cj, ck ! cube center i, j, k
+
+        integer :: n, np
+        integer :: idbuf = 0
+        integer, dimension(nx) :: iair = 0
+        integer, dimension(ny) :: jair = 0
+        integer, dimension(nz) :: kair = 0
+
+        do ci = npml, nz - npml
+            do cj = npml, ny - npml
+                do ck = npml, nx - npml
+                    if (idper(ci, cj, ck) .ne. 1) then
+                        idbuf = idper(ci, cj, ck)
+                        n = 0
+                        part_weight = rho(idbuf) * dx * dy * dz
+                        sar_mass = 0.0d0
+
+                        do while (part_weight < mass_weight)
+                            do k = ck - n, ck + n
+                                do j = cj - n, cj + n
+                                    do i = ci - n, ci + n
+                                        if (sar(i, j, k) > threshold_sar) then
+                                            idbuf = idper(i, j, k)
+                                            part_weight = part_weight + rho(idbuf) * dx * dy * dz
+                                            part_power = part_power + sigma(idbuf) * eamp(i, j, k) * eamp(i, j, k)
+                                        else
+                                            iair(i) = iair(i) + 1
+                                            jair(i) = jair(i) + 1
+                                            kair(i) = kair(i) + 1
+                                        end if
+                                    end do
+                                end do
+                            end do
+                            
+                        end do
+
+                    end if
+                end do
+            end do
+        end do
+
     end subroutine calc_peak_sar_xg
 
 

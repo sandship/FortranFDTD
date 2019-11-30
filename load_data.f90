@@ -6,17 +6,43 @@ module load_model
     ! this subroutine LOAD human model, 
     ! each line format represents (x, y, z, permitivity_ID)
     ! permitivity ID is bound with `tissue_param.csv`
-    subroutine load_human
+    subroutine load_human_model
         implicit none
+        integer :: i, j, k, n, idbuf
+        integer :: ios = 1
+
+        open(101, file=human_model, status='old')
+            do n = 1, nx * ny * nz
+                read(101, *, iostat=ios) i, j, k, idbuf
+                idper(i + margin, j + margin, k + margin) = idbuf
+                
+                idperx(i + margin, j + margin, k + margin) = idbuf
+                idpery(i + margin, j + margin, k + margin) = idbuf
+                idperz(i + margin, j + margin, k + margin) = idbuf
+
+                ! idperx(i + margin, j + margin, k + margin + 1) = idbuf
+                ! idpery(i + margin, j + margin, k + margin + 1) = idbuf
+                
+                ! idpery(i + margin + 1, j + margin, k + margin) = idbuf
+                ! idperz(i + margin + 1, j + margin, k + margin) = idbuf
+
+                ! idperz(i + margin, j + margin + 1, k + margin) = idbuf
+                ! idperx(i + margin, j + margin + 1, k + margin) = idbuf
+
+                ! idperx(i + margin, j + margin + 1, k + margin + 1) = idbuf
+                ! idpery(i + margin + 1, j + margin, k + margin + 1) = idbuf
+                ! idperz(i + margin + 1, j + margin + 1, k + margin) = idbuf
+            end do
+        close(101)
     
-    end subroutine load_human
+    end subroutine load_human_model
 
     subroutine load_tissue
         implicit none
         integer :: index, n
         integer :: ios = 1
 
-        open(101, file='asset/6_78MHZ_Tissue_param.csv', status='old')
+        open(101, file=tissue_param, status='old')
             read(101, *)
             do n = 1, nmax_per
                 read(101, *, iostat=ios) index, sigma(index), eps(index), rho(index)
@@ -26,53 +52,7 @@ module load_model
 
     end subroutine load_tissue
 
-    ! this subroutine MAKE test Mie sphere model
-    ! permitivity ID is bound with `tissue_param.csv`
-    subroutine make_mie_model
-        implicit none
-        integer :: i, j, k
-
-        do k = cent_z - mie_radius, cent_z + mie_radius
-            do j = cent_y - mie_radius, cent_y + mie_radius
-                do i = cent_x - mie_radius, cent_x + mie_radius
-
-                    if((k - cent_z) ** 2 + (j - cent_y) ** 2 + (i - cent_x) ** 2 <= mie_radius ** 2) then
-                        idper(i, j, k) = mie_per
-
-                        idperx(i, j, k) = mie_per
-                        ! idperx(i, j, k + 1) = mie_per
-                        ! idperx(i, j + 1, k) = mie_per
-                        ! idperx(i, j + 1, k + 1) = mie_per
-
-                        idpery(i, j, k) = mie_per
-                        ! idpery(i, j, k + 1) = mie_per
-                        ! idpery(i + 1, j, k) = mie_per
-                        ! idpery(i + 1, j, k + 1) = mie_per
-
-                        idperz(i, j, k) = mie_per
-                        ! idperz(i, j + 1, k) = mie_per
-                        ! idperz(i + 1, j, k) = mie_per
-                        ! idperz(i + 1, j + 1, k) = mie_per
-                        
-                    end if
-
-                end do
-            end do
-        end do
-    end subroutine make_mie_model
-
-
-    subroutine make_dipole_antenna
-        implicit none
-        integer :: i, j, k
-        i = feedx
-        j = feedy
-        do k = feedz - int(mie_dipole_len / 2), feedz + int(mie_dipole_len / 2)
-            idpecz(i, j, k) = 0
-        end do
-    end subroutine make_dipole_antenna
-
-
+    
     subroutine make_groud_plane
         implicit none
         integer :: i, j, k
@@ -256,36 +236,33 @@ module load_field
 
     subroutine load_efield
         implicit none
+        integer :: i, j, k, n
+        double precision :: px, py, pz
+        double precision :: einx_re, einx_imag
+        double precision :: einy_re, einy_imag
+        double precision :: einz_re, einz_imag
+        open(101, file=inc_efield, status='old')
+        
+        do n = 1, nx * ny * nz
+            read(101, *, iostat=ios) px, py, pz, &
+                                     einx_re, einx_imag, &
+                                     einy_re, einy_imag, &
+                                     einz_re, einz_imag
+            
+            i = int((px + cent_x * dx) / dx) + 1
+            j = int((py + cent_y * dy) / dy) + 1
+            k = int((pz + cent_z * dz) / dz) + 1
 
-    end subroutine load_efield
+            einx(i, j, k) = einx_re + im * einx_imag
+            einy(i, j, k) = einy_re + im * einy_imag
+            einz(i, j, k) = einz_re + im * einz_imag
 
-    subroutine load_plane_wave
-        implicit none
-        integer :: i, j, k
+            einx_sub(i, j, k) = im * einx(i, j, k)
+            einy_sub(i, j, k) = im * einy(i, j, k)
+            einz_sub(i, j, k) = im * einz(i, j, k)
 
-        do k = 2, nz - 1
-            do j = 2, ny - 1
-                do i = 2, nz - 1
-                    einx(i, j, k) = exp(im * (k * dz * wavenum))
-                    einy(i, j, k) = 0.0d0
-                    einz(i, j, k) = 0.0d0
-
-                    einx_sub(i, j, k) = einx(i, j, k) * im
-                    einy_sub(i, j, k) = einy(i, j, k) * im
-                    einz_sub(i, j, k) = einz(i, j, k) * im
-                end do
-            end do
-        end do
-
-        open(101, file='output/load_planewave.dat', status='replace')
-        i = cent_x
-        do j = 1, ny
-            do k = 1, nz
-                write(101, *) j, k, real(einx(i, j, k)), imag(einx(i, j, k))
-            end do
         end do
         close(101)
-
-    end subroutine load_plane_wave
+    end subroutine load_efield
 
 end module load_field

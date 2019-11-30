@@ -9,11 +9,10 @@ program main
     use output
     implicit none
 
+    call load_human_model
     call load_tissue
-    call make_mie_model
 
-    !call load_efield
-    call load_plane_wave
+    call load_efield
 
     call set_em_coefficient
     call set_pml_coefficient
@@ -36,7 +35,7 @@ program main
 
             call calc_sar
             call calc_body_sar
-            call calc_peak_sar_xg
+            ! call calc_peak_sar_xg(1.0d-3)
 
             call output_at_checkpoint
         end if

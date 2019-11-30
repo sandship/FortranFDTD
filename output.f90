@@ -16,6 +16,15 @@ module output
         character(len=9) :: stepchar
         write(stepchar, '(i9.9)') step
 
+        open(101, file='./output/load_planewave.dat', status='replace')
+        i = cent_x
+        do j = 1, ny
+            do k = 1, nz
+                write(101, *) j, k, real(einx(i, j, k)), imag(einx(i, j, k))
+            end do
+        end do
+        close(101)
+
         open(101, file='./output/CE_XYplane.dat', status='replace')
             k = cent_z
             do i = 1, nx

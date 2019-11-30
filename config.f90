@@ -4,15 +4,18 @@ module setup_parameter
     public
 
     ! ## declare user setting parameter ##
-    integer, parameter :: nair = 5
-    integer, parameter :: npml = 12
-    integer, parameter :: thread_num = 4
+    character(len=*), parameter :: human_model = "humanmodel/test_sphere.index"
+    character(len=*), parameter :: inc_efield = "incfield/planewave_xaxis_6_78MHz.dat"
+    character(len=*), parameter :: tissue_param = "asset/6_78MHZ_Tissue_param.csv"
 
-    integer, parameter :: nx = 40 + (nair + npml) * 2
-    integer, parameter :: ny = 66 + (nair + npml) * 2
-    integer, parameter :: nz = 40 + (nair + npml) * 2
+    integer, parameter :: nair = 15
+    integer, parameter :: npml = 12
+
+    integer, parameter :: nx = 20 + (nair + npml) * 2
+    integer, parameter :: ny = 20 + (nair + npml) * 2
+    integer, parameter :: nz = 20 + (nair + npml) * 2
     integer, parameter :: nt = 30001
-    integer, parameter :: check_time = 20
+    integer, parameter :: check_time = 60
     integer, parameter :: check_interval = int(nt / check_time)
     
     double precision, parameter :: freq = 6.78d+6
@@ -28,7 +31,7 @@ module setup_parameter
     double precision, parameter :: cv = 2.99792458d+8
     double precision, parameter :: eps0 = 8.8541878128d-12
     double precision, parameter :: mu0 = pi * 4.0d-7
-    double precision, parameter :: z0 = 120 * pi
+    double precision, parameter :: z0 = 120.0d0 * pi
     double precision, parameter :: omega = 2.0d0 * pi * freq
     double precision, parameter :: lambda = cv/freq
     double precision, parameter :: wavenum = 2.0d0 * pi / lambda
@@ -37,21 +40,12 @@ module setup_parameter
     integer, parameter :: cent_x = int(nx/2)
     integer, parameter :: cent_y = int(ny/2)
     integer, parameter :: cent_z = int(nz/2)
+    integer, parameter :: margin = (nair + npml)
 
     double precision :: dt
     double precision :: hdt
     
     complex(kind(0d0)) :: cphase
-
-    ! ## test model para ##
-    integer, parameter :: mie_radius = int(0.04d0 / dx)
-    integer, parameter :: mie_per = 2
-    integer, parameter :: mie_distance = int(0.01d0 / dy)
-    integer, parameter :: mie_dipole_len = int(16)
-
-    integer, parameter :: feedx = cent_x
-    integer, parameter :: feedy = cent_y + mie_radius + mie_distance
-    integer, parameter :: feedz = cent_z
 
     integer, parameter :: ground_plane_height = npml + 1
 
@@ -79,6 +73,7 @@ module setup_parameter
     double precision, dimension(nmax_PER) :: msigma = 0.0d0
     double precision, dimension(nmax_PER) :: mu = mu0
     double precision, dimension(nmax_PER) :: rho = 1.0d0
+    double precision :: sar_ave_wb = 0.d0
 
 
     !## declare EM-field array ##
@@ -91,9 +86,8 @@ module setup_parameter
     double precision, dimension(nx, ny, nz) :: examp, eyamp, ezamp
     double precision, dimension(nx, ny, nz) :: hxamp, hyamp, hzamp
 
+    double precision, dimension(nx, ny, nz) :: eamp
     double precision, dimension(nx, ny, nz) :: sar
-    double precision :: sar_ave_wb = 0.d0
-    double precision :: mass_weight = 0.d0
 
     double precision, dimension(nx, ny, nz) :: exphase, eyphase, ezphase
     double precision, dimension(nx, ny, nz) :: hxphase, hyphase, hzphase
