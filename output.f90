@@ -59,9 +59,11 @@ module output
 
     subroutine output_at_end
         implicit none
-        integer :: i, j, k
+        integer :: n
         character(len=9) :: stepchar
         write(stepchar, '(i9.9)') step
+
+
     end subroutine output_at_end
 
 

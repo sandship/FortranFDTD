@@ -4,9 +4,10 @@ module setup_parameter
     public
 
     ! ## declare user setting parameter ##
-    character(len=*), parameter :: human_model = "humanmodel/test_sphere.index"
-    character(len=*), parameter :: inc_efield = "incfield/planewave_xaxis_6_78MHz.dat"
-    character(len=*), parameter :: tissue_param = "asset/6_78MHZ_Tissue_param.csv"
+    character(len=*), parameter :: human_model = "human_model/test_sphere.index"
+    character(len=*), parameter :: inc_efield = "inc_field/planewave_xaxis_6_78MHz.dat"
+    character(len=*), parameter :: tissue_param = "tissue_param/6_78MHZ_Tissue_param.csv"
+    character(len=*), parameter :: antenna_name = "antenna_model/dipole"
 
     integer, parameter :: nair = 15
     integer, parameter :: npml = 12
@@ -14,8 +15,8 @@ module setup_parameter
     integer, parameter :: nx = 20 + (nair + npml) * 2
     integer, parameter :: ny = 20 + (nair + npml) * 2
     integer, parameter :: nz = 20 + (nair + npml) * 2
-    integer, parameter :: nt = 30001
-    integer, parameter :: check_time = 60
+    integer, parameter :: nt = 2000
+    integer, parameter :: check_time = 10
     integer, parameter :: check_interval = int(nt / check_time)
     
     double precision, parameter :: freq = 6.78d+6
@@ -33,8 +34,8 @@ module setup_parameter
     double precision, parameter :: mu0 = pi * 4.0d-7
     double precision, parameter :: z0 = 120.0d0 * pi
     double precision, parameter :: omega = 2.0d0 * pi * freq
-    double precision, parameter :: lambda = cv/freq
-    double precision, parameter :: wavenum = 2.0d0 * pi / lambda
+    double precision, parameter :: lambda = cv / freq
+    double precision, parameter :: wn = 2.0d0 * pi / lambda !wavenumber
     complex(kind(0d0)), parameter :: im = (0.0d0, 1.0d0)
 
     integer, parameter :: cent_x = int(nx/2)
@@ -76,6 +77,14 @@ module setup_parameter
     double precision :: sar_ave_wb = 0.d0
 
 
+    !## declare maxwell's co-efficient array ##
+    double precision, dimension(nx, ny, nz) :: cex, cey, cez
+    double precision, dimension(nx, ny, nz) :: dex, dey, dez
+
+    double precision, dimension(nx, ny, nz) :: chx, chy, chz
+    double precision, dimension(nx, ny, nz) :: dhx, dhy, dhz
+
+
     !## declare EM-field array ##
     double precision, dimension(nx, ny, nz) :: ex, ey, ez
     double precision, dimension(nx, ny, nz) :: hx, hy, hz
@@ -98,11 +107,37 @@ module setup_parameter
     double precision, dimension(nx, ny, nz) :: etx, ety, etz
     double precision, dimension(nx, ny, nz) :: etx_sub, ety_sub, etz_sub
 
-    !## declare maxwell's co-efficient array ##
-    double precision, dimension(nx, ny, nz) :: cex, cey, cez
-    double precision, dimension(nx, ny, nz) :: dex, dey, dez
+    !## declare scatter E-field param
 
-    double precision, dimension(nx, ny, nz) :: chx, chy, chz
-    double precision, dimension(nx, ny, nz) :: dhx, dhy, dhz
+    ! pp(np0)			[r]   構成点データ
+    ! tl(2,nla)			[i]   三角を構成する点の番号データ
+    ! erad(nla)			[r]   線の半径
+    ! lrp(nla)			[i]   ＋の線リスト
+    ! lrm(nla)			[i]   －の線リスト
+    ! edp(nedp)			[i]   エッジを構成する点の番号
+    ! freen(2,nedp)		[i]   エッジから浮遊する2点の番号
+    ! inner(6,nta)		[i]   寄与する線の番号
+    ! length(nla)		[r]   線の長さ
+    ! center(3,nla)		[r]   線の中心点
+    ! nlp(nla)			[i]	  ひとつの線が寄与するエッジの数
+    ! inds(nant)		[i]   給電点のインデックス
+    
+    complex(kind(0d0)), dimension(nx, ny, nz) :: cur_x, cur_y, cur_z
+    double precision, dimension(nx, ny, nz) :: xi, yi, zi
+
+    integer :: vertex_num, seg_num, edge_num
+
+    integer, allocatable :: tl(:, :), lrp(:), lrm(:), edp(:)
+    integer, allocatable :: freen(:, :), seg_inner(:, :), nlp(:)
+    integer, allocatable :: inds(:), ipiv(:), iw1(:)
+
+    double precision, allocatable :: pp(:, :), erad(:), seg_length(:)
+    double precision, allocatable :: seg_center(:, :)
+    
+    complex(kind(0d0)), allocatable :: escatter_x(:)
+    complex(kind(0d0)), allocatable :: escatter_y(:)
+    complex(kind(0d0)), allocatable :: escatter_z(:)
+
+    complex(kind(0d0)), allocatable :: return_v(:)
 
 end module setup_parameter

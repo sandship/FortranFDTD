@@ -66,6 +66,66 @@ module load_model
     end subroutine make_groud_plane
 
 
+    subroutine load_antenna_model
+        implicit none
+        integer :: n
+
+        open(101, file=antenna_name//'_p0.dat', status='old')
+            read(101, *) vertex_num
+            allocate(pp(3, vertex_num))
+            do n = 1, vertex_num
+                read(101, '(3e18.6)') pp(1, n), pp(2, n), pp(3, n)
+            end do
+        close(101)
+        
+
+        open(101, file=antenna_name//'_edge.dat', status='old')
+            read(101, *) edge_num
+            
+            allocate(edp(edge_num))
+            allocate(lrp(edge_num))
+            allocate(lrm(edge_num))
+            allocate(freen(2, edge_num))
+
+            do n = 1, edge_num
+                read(101, '(5i8)') edp(n), lrp(n), lrm(n), freen(1, n), freen(2, n)
+            end do
+
+        close(101)
+        
+
+        open(101, file=antenna_name//'_l0.dat', status='old')
+            read(101, *) seg_num
+
+            allocate(tl(2, seg_num))
+            allocate(erad(seg_num))
+            
+            do n = 1, seg_num
+                read(101, '(2i8, e18.10)') tl(1, n), tl(2, n), erad(n)
+            end do
+
+        close(101)
+    
+
+        open(101, file=antenna_name//'_length.dat', status='old')
+            read(101, *) seg_num
+
+            allocate(seg_length(seg_num))
+            allocate(seg_center(3, seg_num))
+            allocate(nlp(seg_num))
+            allocate(seg_inner(6, seg_num))
+
+            do n = 1, seg_num
+                read(101, '(4e18.10, 7i8)') seg_length(n), &
+                             seg_center(1, n), seg_center(2, n), seg_center(3, n), &
+                             nlp(n), &
+                             seg_inner(1, n), seg_inner(2, n), seg_inner(3, n), &
+                             seg_inner(4, n), seg_inner(5, n), seg_inner(6, n)
+            end do
+        close(101)
+        end subroutine load_antenna_model
+    
+
     subroutine set_pml_coefficient
         implicit none
         integer :: n
@@ -225,7 +285,6 @@ module load_model
         end do
     end subroutine set_em_coefficient
 end module load_model
-
 
 
 module load_field

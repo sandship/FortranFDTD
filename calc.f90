@@ -4,26 +4,6 @@ module field_update
     implicit none
 
     contains
-<<<<<<< HEAD
-=======
-    subroutine update_Vfeed
-        implicit none
-        vfeed = sin(omega * t)
-        ez(feedx, feedy, feedz) = vfeed / dz
-
-        vfeed_sub = cos(omega * t)
-        ez_sub(feedx, feedy, feedz) = vfeed_sub / dz
-    end subroutine update_Vfeed
-
-
-    subroutine update_Ifeed
-        implicit none
-        ifeed = dy * (hx(feedx, feedy - 1, feedz) - hx(feedx, feedy, feedz)) &
-              + dx * (hy(feedx, feedy, feedz) - hy(feedx - 1, feedy, feedz))
-    end subroutine update_Ifeed
-
-
->>>>>>> 654ea19bd5480deff4b711b0be3fed11758ecd38
     subroutine update_inc_field
         implicit none
         integer :: i, j, k
@@ -373,6 +353,8 @@ module calc_amp
         integer, dimension(ny) :: jair = 0
         integer, dimension(nz) :: kair = 0
 
+        print *, 'calc. peak sar'
+
         do ci = npml, nz - npml
             do cj = npml, ny - npml
                 do ck = npml, nx - npml
@@ -414,6 +396,8 @@ module calc_amp
         implicit none
         integer :: i, j, k
 
+        print *, 'calc. field phase'
+
         !$omp parallel num_threads(16) &
         !$omp private(i, j, k)
         !$omp do
@@ -446,8 +430,153 @@ module calc_scatter
     contains
 
     ! this subroutine is called at end of programs
-    subroutine calc_return_voltage
+    subroutine calc_escatter
         implicit none
-    
+        integer :: i, j, k
+        integer :: n
+        integer :: idbuf
+        double precision :: rpx, rpy, rpz, rp
+        complex(kind(0d0)) :: ppx, ppy, ppz, ds
+
+        print *, 'calc. scatter efield'
+
+        allocate(escatter_x(vertex_num))
+        allocate(escatter_y(vertex_num))
+        allocate(escatter_z(vertex_num))
+
+        escatter_x = (0.d0, 0.d0)
+        escatter_y = (0.d0, 0.d0)
+        escatter_z = (0.d0, 0.d0)
+
+        !$omp parallel num_threads(16) &
+        !$omp private(i, j, k)
+        !$omp do
+        do k = npml, nz - npml
+            do j = npml, ny - npml
+                do i = npml, nx - npml
+                    idbuf = idper(i ,j ,k)
+                    
+                    cur_x(i ,j ,k) = (im * omega * (eps(idbuf) - eps0) + sigma(idbuf)) &
+                                   * examp(i, j, k) * exp(im * exphase(i, j, k))* dx * dy * dz
+
+                    cur_y(i ,j ,k) = (im * omega * (eps(idbuf) - eps0) + sigma(idbuf)) &
+                                   * eyamp(i, j, k) * exp(im * eyphase(i, j, k))* dx * dy * dz
+
+                    cur_z(i ,j ,k) = (im * omega * (eps(idbuf) - eps0) + sigma(idbuf)) &
+                                   * ezamp(i, j, k) * exp(im * ezphase(i, j, k))* dx * dy * dz
+                    
+                    xi(i, j, k) = i * dx
+                    yi(i, j, k) = j * dy
+                    zi(i, j, k) = k * dz
+
+                end do
+            end do
+        end do
+        !$omp end do
+        !$omp end parallel
+
+        !$omp parallel num_threads(16) &
+        !$omp private(n, i, j, k, rpx, rpy, rpz, rp, ds, ppx, ppy, ppz)
+        !$omp do
+        do n = 1, vertex_num
+            do k = npml, nz - npml
+                do j = npml, ny - npml
+                    do i = npml, nx - npml
+                                         
+                    rpx = (pp(1, n) - xi(i, j, k))
+                    rpy = (pp(2, n) - yi(i, j, k))
+                    rpz = (pp(3, n) - zi(i, j, k))
+             
+                    rp = sqrt(rpx ** 2 + rpy ** 2 + rpz ** 2)
+                    ds = (1.0d0 + 1.0d0/(im * wn * rp)) / rp
+             
+                    ppx = (rpx * cur_x(i, j, k) &
+                        +  rpy * cur_y(i, j, k) &
+                        +  rpz * cur_z(i, j, k)) * rpx / rp**2
+             
+             
+                    ppy = (rpx * cur_x(i, j, k) &
+                        +  rpy * cur_y(i, j, k) &
+                        +  rpz * cur_z(i, j, k)) * rpy / rp**2
+             
+             
+                    ppz = (rpx * cur_x(i, j, k) &
+                        +  rpy * cur_y(i, j, k) &
+                        +  rpz * cur_z(i, j, k)) * rpz / rp**2
+
+
+                    escatter_x(n) = escatter_x(n) - im * wn * z0 * exp(-im * wn * rp)/(4.0d0 * pi * rp) &
+                                  * ((cur_x(i, j, k) - ppx) &
+                                  + ds / (im * wn) * (cur_x(i, j, k) - 3.0d0 * ppx))
+             
+                    escatter_y(n) = escatter_y(n) - im * wn * z0 * exp(-im * wn * rp)/(4.0d0 * pi * rp) &
+                                  * ((cur_y(i, j, k) - ppy) &
+                                  + ds / (im * wn) * (cur_y(i, j, k) - 3.0d0 * ppy))
+                    
+                    escatter_z(n) = escatter_z(n) - im * wn * z0 * exp(-im * wn * rp)/(4.0d0 * pi * rp) &
+                                  * ((cur_z(i, j, k) - ppz) &
+                                  + ds / (im * wn) * (cur_z(i, j, k) - 3.0d0 * ppz))
+                    
+                    end do
+                end do
+            end do
+        end do
+        !$omp end do
+        !$omp end parallel
+
+    end subroutine calc_escatter
+
+
+    subroutine calc_return_voltage
+    implicit none
+        double precision, dimension(3) :: xa, ya, za    
+        integer :: i, n
+        integer :: mt
+        print *, 'calc. return voltage'
+
+        allocate(return_v(vertex_num))
+        return_v = (0.d0, 0.d0)
+
+        do n = 1, edge_num
+            do i = 1, 2
+                mt = tl(i, lrp(n))
+                if(mt == freen(1, i)) then
+                    xa(1) = pp(1, mt) / lambda
+                    ya(1) = pp(2, mt) / lambda
+                    za(1) = pp(3, mt) / lambda
+                else
+                    xa(2) = pp(1, mt) / lambda
+                    ya(2) = pp(2, mt) / lambda
+                    za(2) = pp(3, mt) / lambda
+                endif
+            end do
+
+            do i = 1, 2
+                mt = tl(i, lrm(n))
+                if(mt == freen(2, i)) then
+                    xa(3) = pp(1, mt) / lambda
+                    ya(3) = pp(2, mt) / lambda
+                    za(3) = pp(3, mt) / lambda
+                endif
+            end do
+
+            return_v(edp(n)) = return_v(edp(n)) &
+                             + (escatter_x(edp(n)) * (xa(2) - xa(1)) &
+                             +  escatter_y(edp(n)) * (ya(2) - ya(1)) &
+                             +  escatter_z(edp(n)) * (za(2) - za(1))) * 0.5d0
+            
+            return_v(edp(n)) = return_v(edp(n)) &
+                             + (escatter_x(edp(n)) * (xa(3) - xa(2)) &
+                             +  escatter_y(edp(n)) * (ya(3) - ya(2)) &
+                             +  escatter_z(edp(n)) * (za(3) - za(2))) * 0.5d0
+
+        end do
+
+        open(101, file='output/return_voltage.dat', position='append')
+            do n = 1, edge_num
+                write(101,'(i5, 2e18.10)') edp(n), real(return_v(edp(n))), imag(return_v(edp(n)))
+            end do
+        close(101)
     end subroutine calc_return_voltage
+
 end module calc_scatter

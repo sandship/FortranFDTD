@@ -11,6 +11,8 @@ program main
 
     call load_human_model
     call load_tissue
+    
+    call load_antenna_model
 
     call load_efield
 
@@ -43,7 +45,9 @@ program main
     end do
 
     call calc_field_phase
+
+    call calc_escatter
     call calc_return_voltage
-    
+
     call output_at_end
 end program main
