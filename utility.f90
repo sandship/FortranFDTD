@@ -6,11 +6,9 @@ module fileIO
         implicit none
     end subroutine
 
-
     subroutine read_csv
         implicit none
     end subroutine
-
 
     subroutine write_csv
         implicit none

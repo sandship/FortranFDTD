@@ -10,6 +10,7 @@ module output
 
     contains
 
+    ! at first
     subroutine output_at_first
         implicit none
         integer :: i, j, k
@@ -57,16 +58,17 @@ module output
     end subroutine output_at_first
 
 
+    ! at the end
     subroutine output_at_end
         implicit none
         integer :: n
         character(len=9) :: stepchar
         write(stepchar, '(i9.9)') step
 
-
     end subroutine output_at_end
 
 
+    ! at middle
     subroutine output_at_checkpoint
         implicit none
         integer :: i, j, k

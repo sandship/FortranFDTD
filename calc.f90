@@ -526,7 +526,7 @@ module calc_scatter
 
     end subroutine calc_escatter
 
-
+    ! calculation for return voltage induced by current inside of permitivity
     subroutine calc_return_voltage
     implicit none
         double precision, dimension(3) :: xa, ya, za    

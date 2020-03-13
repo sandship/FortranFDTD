@@ -37,6 +37,7 @@ module load_model
     
     end subroutine load_human_model
 
+    ! this subroutine LOAD human tissue on specific freq
     subroutine load_tissue
         implicit none
         integer :: index, n
@@ -52,7 +53,7 @@ module load_model
 
     end subroutine load_tissue
 
-    
+    ! locate ground plane as idpec
     subroutine make_groud_plane
         implicit none
         integer :: i, j, k
@@ -65,7 +66,7 @@ module load_model
         end do
     end subroutine make_groud_plane
 
-
+    ! locate antenna as idpec
     subroutine load_antenna_model
         implicit none
         integer :: n
@@ -126,6 +127,7 @@ module load_model
         end subroutine load_antenna_model
     
 
+    ! set coefficient for PML boundary condition 
     subroutine set_pml_coefficient
         implicit none
         integer :: n
@@ -296,7 +298,7 @@ module load_field
     subroutine load_efield
         implicit none
         integer :: i, j, k, n
-        double precision :: px, py, pz
+        integer :: px, py, pz
         double precision :: einx_re, einx_imag
         double precision :: einy_re, einy_imag
         double precision :: einz_re, einz_imag
@@ -308,9 +310,9 @@ module load_field
                                      einy_re, einy_imag, &
                                      einz_re, einz_imag
             
-            i = int((px + cent_x * dx) / dx) + 1
-            j = int((py + cent_y * dy) / dy) + 1
-            k = int((pz + cent_z * dz) / dz) + 1
+            i = px
+            j = py
+            k = pz
 
             einx(i, j, k) = einx_re + im * einx_imag
             einy(i, j, k) = einy_re + im * einy_imag

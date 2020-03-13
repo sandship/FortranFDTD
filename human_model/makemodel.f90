@@ -8,6 +8,7 @@ program main
     integer :: i, j, k
     open(101, file='test_sphere.index', status='replace')
 
+    ! TEST MODEL: SPHERE
     do i = 0, radius
         do j = 0, radius
             do k = 0, radius

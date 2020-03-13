@@ -7,7 +7,7 @@ module setup_parameter
     character(len=*), parameter :: human_model = "human_model/test_sphere.index"
     character(len=*), parameter :: inc_efield = "inc_field/planewave_xaxis_6_78MHz.dat"
     character(len=*), parameter :: tissue_param = "tissue_param/6_78MHZ_Tissue_param.csv"
-    character(len=*), parameter :: antenna_name = "antenna_model/dipole"
+    character(len=*), parameter :: antenna_name = "dipole"
 
     integer, parameter :: nair = 15
     integer, parameter :: npml = 12
@@ -15,16 +15,15 @@ module setup_parameter
     integer, parameter :: nx = 20 + (nair + npml) * 2
     integer, parameter :: ny = 20 + (nair + npml) * 2
     integer, parameter :: nz = 20 + (nair + npml) * 2
-    integer, parameter :: nt = 2000
+    integer, parameter :: nt = 30000
     integer, parameter :: check_time = 10
     integer, parameter :: check_interval = int(nt / check_time)
     
-    double precision, parameter :: freq = 6.78d+6
+    double precision, parameter :: freq = 10d+6
     double precision, parameter :: dx = 0.002d0, dy = dx, dz = dx
 
     integer, parameter :: dimpml = 3
     double precision, parameter :: refpml = 1.0d-6
-
 
     ! ## declare general parameter ##
     double precision, parameter :: pi = 3.1415926535d0
@@ -107,7 +106,7 @@ module setup_parameter
     double precision, dimension(nx, ny, nz) :: etx, ety, etz
     double precision, dimension(nx, ny, nz) :: etx_sub, ety_sub, etz_sub
 
-    !## declare scatter E-field param
+    !## declare scatter E-field parameter
 
     ! pp(np0)			[r]   構成点データ
     ! tl(2,nla)			[i]   三角を構成する点の番号データ
@@ -133,7 +132,7 @@ module setup_parameter
 
     double precision, allocatable :: pp(:, :), erad(:), seg_length(:)
     double precision, allocatable :: seg_center(:, :)
-    
+
     complex(kind(0d0)), allocatable :: escatter_x(:)
     complex(kind(0d0)), allocatable :: escatter_y(:)
     complex(kind(0d0)), allocatable :: escatter_z(:)
